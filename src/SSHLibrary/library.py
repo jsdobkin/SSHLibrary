@@ -882,7 +882,7 @@ class SSHLibrary(object):
 
     def login_with_public_key(self, username, keyfile, password='',
                               allow_agent=False, look_for_keys=False,
-                              delay='0.5 seconds'):
+                              delay='0.5 seconds', jump_host=None):
         """Logs into the SSH server using key-based authentication.
 
         Connection must be opened before using this keyword.
@@ -920,9 +920,14 @@ class SSHLibrary(object):
 
         *Note:* ``allow_agent`` and ``look_for_keys`` do not work when using Jython.
         """
+        jump_client = None
+        jump_host_config = None
+        if jump_host:
+            jump_host_config = self.get_connection(index_or_alias=jump_host)
+            jump_client = self._connections.connections[jump_host_config.index-1].client
         return self._login(self.current.login_with_public_key, username,
                            keyfile, password, is_truthy(allow_agent),
-                           is_truthy(look_for_keys), delay)
+                           is_truthy(look_for_keys), delay, jump_client, jump_host_config)
 
     def _login(self, login_method, username, *args):
         self._log("Logging into '%s:%s' as '%s'."

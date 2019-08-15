@@ -208,7 +208,7 @@ class AbstractSSHClient(object):
         return self.read_until_prompt()
 
     def login_with_public_key(self, username, keyfile, password, allow_agent=False,
-                              look_for_keys=False, delay=None):
+                              look_for_keys=False, delay=None, jump_client=None, jump_host_config=None):
         """Logs into the remote host using the public key authentication.
 
         This method reads the output from the remote host after logging in,
@@ -242,7 +242,7 @@ class AbstractSSHClient(object):
         self._verify_key_file(keyfile)
         try:
             self._login_with_public_key(username, keyfile, password,
-                                        allow_agent, look_for_keys)
+                                        allow_agent, look_for_keys, jump_client, jump_host_config)
         except SSHClientException:
             raise SSHClientException("Login with public key failed for user "
                                      "'%s'." % self._decode(username))
@@ -258,7 +258,7 @@ class AbstractSSHClient(object):
             raise SSHClientException("Could not read key file '%s'." % keyfile)
 
     def _login_with_public_key(self, username, keyfile, password,
-                               allow_agent, look_for_keys):
+                               allow_agent, look_for_keys, jump_host):
         raise NotImplementedError
 
     @staticmethod

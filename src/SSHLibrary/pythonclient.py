@@ -95,14 +95,20 @@ class PythonSSHClient(AbstractSSHClient):
         except paramiko.AuthenticationException:
             raise SSHClientException
 
-    def _login_with_public_key(self, username, key_file, password, allow_agent, look_for_keys):
+    def _login_with_public_key(self, username, key_file, password, allow_agent, look_for_keys, jump_client, jump_host_config):
         self.config.host = self._read_ssh_config_host(self.config.host)
+        jump_channel = None
         try:
+            if jump_client:
+                dest_addr = (self.config.host, self.config.port)
+                jump_addr = (jump_host_config.host, jump_host_config.port)
+                jump_channel = jump_client.get_transport().open_channel("direct-tcpip", dest_addr, jump_addr)
             self.client.connect(self.config.host, self.config.port, username,
-                                password, key_filename=key_file,
-                                allow_agent=allow_agent,
-                                look_for_keys=look_for_keys,
-                                timeout=float(self.config.timeout))
+                password, key_filename=key_file,
+                allow_agent=allow_agent,
+                look_for_keys=look_for_keys,
+                sock=jump_channel,
+                timeout=float(self.config.timeout))
         except paramiko.AuthenticationException:
             raise SSHClientException
 
