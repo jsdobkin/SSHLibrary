@@ -923,8 +923,15 @@ class SSHLibrary(object):
         jump_client = None
         jump_host_config = None
         if jump_host:
-            jump_host_config = self.get_connection(index_or_alias=jump_host)
-            jump_client = self._connections.connections[jump_host_config.index-1].client
+            try:
+                jump_host_config = self.get_connection(index_or_alias=jump_host) if jump_host else None
+                if jump_host_config and jump_host_config.index:
+                    jump_host_index = (int(jump_host_config.index)-1) 
+                    jump_client = self._connections.connections[jump_host_index].client
+                else:
+                    raise ValueError
+            except ValueError:
+                raise RuntimeError("Non-existing index or alias '%s'." % jump_host)
         return self._login(self.current.login_with_public_key, username,
                            keyfile, password, is_truthy(allow_agent),
                            is_truthy(look_for_keys), delay, jump_client, jump_host_config)
